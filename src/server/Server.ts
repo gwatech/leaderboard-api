@@ -36,7 +36,7 @@ app.get('/leaderboard/:user', async (req: Request, res: Response) => {
 		.findOne({ user: req.params.user! });
 
 	if (!data) return res.status(404).json({ status: false });
-	return res.status(200).json({ ...data, status: true });
+	return res.status(200).json({ data: { ...data }, status: true });
 });
 
 export const init = async () => {
