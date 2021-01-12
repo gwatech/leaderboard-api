@@ -1,8 +1,10 @@
 import express, { Request, Response } from 'express';
+import { Client } from 'discord.js';
 import { Connection as db } from '../struct/Database';
 import { wakeUp } from '../util/wakeup';
 
 const app = express();
+const client = new Client();
 const PORT = process.env.PORT || 3000;
 
 app.use((req, res, next) => {
@@ -39,8 +41,22 @@ app.get('/leaderboard/:user', async (req: Request, res: Response) => {
 	return res.status(200).json({ data: { ...data }, status: true });
 });
 
+app.get('/resolve', async (req: Request, res: Response) => {
+	const userID = req.query.user as string;
+	const user = await client.users.fetch(userID).catch(() => undefined);
+	if (!user) return res.status(404).json({ status: false });
+
+	return res.status(200).json({ data: user });
+});
+
+client.on('ready', () => {
+	client.user?.setStatus('invisible');
+	process.stdout.write(`READY: [${client.user?.tag}]`)
+})
+
 export const init = async () => {
 	await db.connect();
+	await client.login(process.env.TOKEN);
 	wakeUp();
 	return app.listen(PORT, () => process.stdout.write(`App listening to port: ${PORT}`));
 }
