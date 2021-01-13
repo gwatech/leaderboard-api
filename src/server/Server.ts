@@ -50,7 +50,7 @@ app.get('/leaderboard/resolved', async (req: Request, res: Response) => {
 		resolved.push(user);
 	}
 
-	return res.status(200).json({ data: [...resolved], status: true, total: resolved.length });
+	return res.status(200).json({ data: [...resolved, ...data], status: true, total: resolved.length });
 });
 
 app.get('/leaderboard/:user', async (req: Request, res: Response) => {
