@@ -1,13 +1,13 @@
 import express, { Request, Response } from 'express';
 import { Client } from 'discord.js';
 import { Connection as db } from '../struct/Database';
-import { getLevelExp } from '../struct/LevelHandler';
+import { getLevelFromExp } from '../struct/LevelHandler';
 import { wakeUp } from '../util/wakeup';
 
 
 const app = express();
 const client = new Client();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 80;
 
 app.use((req, res, next) => {
 	res.header('Access-Control-Allow-Origin', '*');
@@ -44,20 +44,15 @@ app.get('/leaderboard/resolved', async (req: Request, res: Response) => {
 		.limit(limit)
 		.toArray();
 
-	const leveldata = data.map(({ exp }) => ({
-		level: getLevelExp(exp),
-		exp
-	}));
-
 	const resolved = [];
 
-	for (const userID of data.map(m => m.user)) {
-		const user = await client.users.fetch(userID).catch(() => undefined);
-
-		resolved.push(user);
+	for (const userData of data) {
+		const user = await client.users.fetch(userData.user).catch(() => undefined);
+		const level = { level: getLevelFromExp(userData.exp), exp: userData.exp };
+		resolved.push(Object.assign(user, level));
 	}
 
-	return res.status(200).json({ data: [...resolved, ...leveldata], status: true, total: resolved.length });
+	return res.status(200).json({ data: [...resolved], status: true, total: resolved.length });
 });
 
 app.get('/leaderboard/:user', async (req: Request, res: Response) => {
