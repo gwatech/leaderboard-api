@@ -32,6 +32,27 @@ app.get('/leaderboard', async (req: Request, res: Response) => {
 	});
 });
 
+app.get('/leaderboard/resolved', async (req: Request, res: Response) => {
+	const limit = Number(req.query.limit) || 0;
+
+	const data = await db.db('musico')
+		.collection('levels')
+		.find()
+		.sort({ exp: -1 })
+		.limit(limit)
+		.toArray();
+
+	const resolved = [];
+
+	for (const userID of data.map(m => m.user)) {
+		const user = await client.users.fetch(userID).catch(() => undefined);
+
+		resolved.push(user);
+	}
+
+	return res.status(200).json({ data: [...resolved], status: true, total: resolved.length });
+});
+
 app.get('/leaderboard/:user', async (req: Request, res: Response) => {
 	const data = await db.db('musico')
 		.collection('levels')
